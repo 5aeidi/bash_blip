@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A modular, real-time terminal audio visualizer for Linux that renders system audio as dynamic ASCII art with professional-grade frequency separation.
+A real-time terminal audio visualizer for Linux that renders system audio as dynamic ASCII
 
 <!-- <p align="center">
   <img src="demo/demo_blocks.gif" width="600" alt="blocks skin demo">

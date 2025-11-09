@@ -1,5 +1,5 @@
 from .base import BaseSkin
-
+from colorama import Fore, Style
 class SparklineSkin(BaseSkin):
     name = "sparkline"
 

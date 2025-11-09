@@ -1,4 +1,5 @@
 from .base import BaseSkin
+from colorama import Fore, Style
 import math
 
 class WaveformCanvasSkin(BaseSkin):

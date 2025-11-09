@@ -1,4 +1,5 @@
 from .base import BaseSkin
+from colorama import Fore, Style
 import math
 import random
 
@@ -8,8 +9,7 @@ class PlasmaStormSkin(BaseSkin):
     def __init__(self, bar_height, num_bands):
         super().__init__(bar_height, num_bands)
         try:
-            from colorama import init, Fore, Style
-            init(autoreset=True)
+
             self.has_color = True
             self.Fore = Fore
             self.Style = Style

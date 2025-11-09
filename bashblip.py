@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-bash_blip: Real-time ASCII audio visualizer with balanced frequency response.
+bash_blip: Real-time ASCII audio visualizer with professional-grade frequency separation.
 
 Features:
-- Auto-detects PulseAudio monitor
-- Per-band dynamic scaling (no bass clipping)
-- Frequency balancing for clear mids/treble
-- Fills terminal height/width
-- Ultra-low latency, no delay buildup
-- Clean, silent operation
+- Hybrid linear (bass) + log (mids/treble) band spacing
+- Per-band independent scaling (no bass domination)
+- Frequency balancing for balanced spectrum
+- Auto-fits terminal width and height
+- Ultra-low latency with no accumulating delay
+- Silent, flicker-free output
 """
 
 import subprocess
@@ -21,8 +21,7 @@ import fcntl
 gc.disable()
 
 # === Configuration ===
-CHUNK = 256          # Lower = less latency
-RATE = 22050         # Sample rate (covers up to ~11 kHz)
+RATE = 22050  # Sample rate (covers up to ~11 kHz)
 
 # Terminal size detection
 try:
@@ -33,21 +32,51 @@ except OSError:
     TERMINAL_WIDTH = 80
 
 BAR_HEIGHT = max(4, TERMINAL_HEIGHT - 2)
-NUM_BANDS = min(64, max(16, TERMINAL_WIDTH))
+NUM_BANDS = max(8, TERMINAL_WIDTH - 2)  # Use nearly full width
 
-# Precompute frequency bands
-freqs = np.fft.rfftfreq(CHUNK, 1.0 / RATE)
-min_f, max_f = 20.0, RATE / 2.0
-log_bins = np.logspace(np.log10(min_f), np.log10(max_f), NUM_BANDS + 1)
-bands = [
-    np.where((freqs >= log_bins[i]) & (freqs < log_bins[i + 1]))[0]
-    for i in range(NUM_BANDS)
-]
-bands = [b if len(b) > 0 else [0] for b in bands]
+# Adjust CHUNK based on band count for frequency resolution
+CHUNK = min(2048, max(256, NUM_BANDS * 4))
+
+
+def create_hybrid_bands(chunk_size, rate, num_bands, split_freq=300.0):
+    """Create frequency bands with linear spacing below split_freq, log above."""
+    freqs = np.fft.rfftfreq(chunk_size, 1.0 / rate)
+    max_freq = rate / 2.0
+
+    # Allocate ~30% of bands to linear (bass) region
+    linear_bands = max(4, int(num_bands * 0.3))
+    log_bands = num_bands - linear_bands
+
+    # Linear spacing from 20 Hz to split_freq
+    linear_edges = np.linspace(20.0, split_freq, linear_bands + 1)
+    
+    # Log spacing from split_freq to Nyquist
+    if log_bands > 0:
+        log_edges = np.logspace(
+            np.log10(split_freq),
+            np.log10(max_freq),
+            log_bands + 1
+        )
+        # Combine, avoiding duplicate at split_freq
+        all_edges = np.concatenate([linear_edges[:-1], log_edges])
+    else:
+        all_edges = linear_edges
+
+    # Build band index lists
+    bands = []
+    for i in range(num_bands):
+        low = all_edges[i]
+        high = all_edges[i + 1]
+        indices = np.where((freqs >= low) & (freqs < high))[0]
+        if len(indices) == 0:
+            # Fallback: use previous band or first bin
+            indices = bands[-1] if bands else [0]
+        bands.append(indices)
+    return bands, freqs
 
 
 def get_default_monitor():
-    """Get the default PulseAudio monitor source."""
+    """Auto-detect PulseAudio monitor source."""
     try:
         sink = subprocess.check_output(["pactl", "get-default-sink"], text=True).strip()
         if sink:
@@ -67,13 +96,23 @@ def get_default_monitor():
 
 
 def main():
-    # Get monitor device
+    # Setup frequency bands
+    bands, freqs = create_hybrid_bands(CHUNK, RATE, NUM_BANDS, split_freq=300.0)
+
+    # Frequency balancing: boost highs
+    freq_centers = np.array([
+        np.mean(freqs[band]) if len(band) > 1 else freqs[band[0]]
+        for band in bands
+    ])
+    balance_gain = np.clip(2500.0 / np.sqrt(freq_centers), 1.0, 12.0)
+
+    # Get monitor
     try:
         device = get_default_monitor()
     except Exception:
         sys.exit(1)
 
-    # Launch parec with low-latency settings
+    # Launch low-latency parec
     env = os.environ.copy()
     env["PULSE_LATENCY_MSEC"] = "10"
 
@@ -91,7 +130,7 @@ def main():
         env=env,
     )
 
-    # Make stdout non-blocking
+    # Non-blocking read
     fd = parec.stdout.fileno()
     fl = fcntl.fcntl(fd, fcntl.F_GETFL)
     fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
@@ -99,13 +138,6 @@ def main():
     audio_buffer = bytearray()
     smoothed = np.zeros(NUM_BANDS)
     band_peaks = np.ones(NUM_BANDS) * 1000.0  # per-band peak tracker
-
-    # Precompute frequency centers for balancing
-    freq_centers = np.array([
-        np.mean(freqs[band]) if len(band) > 1 else freqs[band[0]]
-        for band in bands
-    ])
-    balance_gain = np.clip(2500.0 / np.sqrt(freq_centers), 1.0, 12.0)
 
     try:
         while True:
@@ -132,25 +164,23 @@ def main():
                 fft = np.abs(np.fft.rfft(samples))
                 energies = np.array([np.mean(fft[band]) for band in bands])
 
-                # Apply frequency balancing
+                # Apply balancing
                 balanced_energies = energies * balance_gain
 
-                # Update per-band peaks (slow decay)
+                # Update per-band peaks
                 band_peaks = np.maximum(balanced_energies, band_peaks * 0.995)
 
-                # Normalize each band independently with headroom
+                # Normalize per band with headroom
                 norm_energies = np.clip(
                     balanced_energies / (band_peaks * 1.5 + 1e-8),
                     0.0, 1.0
                 )
 
-                # Smooth for visual stability
                 smoothed = 0.3 * norm_energies + 0.7 * smoothed
                 processed = True
 
-            # Render only if processed or forced by silence decay
+            # Render only when audio processed
             if processed:
-                # Build screen
                 screen = []
                 for row in range(BAR_HEIGHT):
                     line = ''.join(
@@ -160,9 +190,6 @@ def main():
                     screen.append(line)
                 sys.stdout.write("\033[2J\033[H" + "\n".join(screen))
                 sys.stdout.flush()
-
-            # Minimal yield to avoid 100% CPU (optional)
-            # time.sleep(0.001)
 
     except KeyboardInterrupt:
         pass

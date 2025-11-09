@@ -89,8 +89,13 @@ def main():
         headroom_factor=args.headroom
     )
     engine.start_stream(device)
+    # Find requested skin index (default to 0 if not found)
     skins_list = [SKINS[name](bar_height, num_bands) for name in SKINS]
-    current_idx = 0
+    try:
+        current_idx = list(SKINS.keys()).index(args.skin)
+    except ValueError:
+        current_idx = 0
+
     skin = skins_list[current_idx]
     sys.stdout.write("\033[?25l")  # Hide cursor
     sys.stdout.flush()
@@ -115,9 +120,19 @@ def main():
             raw = engine.read_frame()
             if raw is not None:
                 norm_energies = engine.process(raw)
-                screen = skin.render(norm_energies)
-                sys.stdout.write("\033[H" + "\n".join(screen))
-                sys.stdout.flush()
+                try:
+                    screen = skin.render(norm_energies)
+                    sys.stdout.write("\033[H" + "\n".join(screen))
+                    sys.stdout.flush()
+                except Exception as e:
+                    sys.stdout.write("\033[2J\033[H")
+                    sys.stdout.write(f"[!] Error in skin '{skin.name}': {e}\n")
+                    import traceback
+                    tb = ''.join(traceback.format_exc())
+                    sys.stdout.write(tb + "\n")
+                    sys.stdout.flush()
+                    time.sleep(1)  # pause briefly so you can read the error
+
 
     except KeyboardInterrupt:
         pass

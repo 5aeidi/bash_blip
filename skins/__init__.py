@@ -29,6 +29,9 @@ from .moirefield import MoireFieldSkin
 from .waveformcanvas import WaveformCanvasSkin
 from .spectrumrain import SpectrumRainSkin
 from .harmonicflow import HarmonicFlowSkin
+from .resonancesphere import ResonanceSphereSkin
+from .harmonicfield import HarmonicFieldSkin
+from .cymatic import CymaticSkin
 
 SKINS = {
     "blocks": BlocksSkin,
@@ -61,4 +64,7 @@ SKINS = {
     "waveformcanvas": WaveformCanvasSkin,
     "spectrumrain": SpectrumRainSkin,
     "harmonicflow": HarmonicFlowSkin,
+    "resonancesphere": ResonanceSphereSkin,
+    "harmonicfield": HarmonicFieldSkin,
+    "cymatic": CymaticSkin,
 }

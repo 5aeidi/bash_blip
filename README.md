@@ -4,9 +4,9 @@
 
 A modular, real-time terminal audio visualizer for Linux that renders system audio as dynamic ASCII art with professional-grade frequency separation.
 
-<p align="center">
+<!-- <p align="center">
   <img src="demo/demo_blocks.gif" width="600" alt="blocks skin demo">
-</p>
+</p> -->
 
 <p align="center">
   <img src="demo/demo_gradient.gif" width="600" alt="gradient skin demo">

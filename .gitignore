@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Local configuration (if you later add config files)
+config.ini
+.env
+
+# Ignore recordings or audio dumps (just in case)
+*.raw
+*.wav

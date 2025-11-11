@@ -2,31 +2,26 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A real-time terminal audio visualizer for Linux that renders system audio as dynamic ASCII
-
-<!-- <p align="center">
-  <img src="demo/demo_blocks.gif" width="600" alt="blocks skin demo">
-</p> -->
+A real-time terminal audio visualizer for Linux CLI that renders system audio as dynamic ASCII with over 20 visualizations.
 
 <p align="center">
-  <img src="demo/demo_gradient.gif" width="600" alt="gradient skin demo">
+  <img src="demo/demo_gradient.gif" width="32%" alt="tunnel skin">
+  <!-- <img src="demo/fire.gif" width="32%" alt="fire skin">
+  <img src="demo/quantumwave.gif" width="32%" alt="quantumwave skin">
+  <br>
+  <img src="demo/cymatic.gif" width="32%" alt="cymatic skin">
+  <img src="demo/resonancesphere.gif" width="32%" alt="resonancesphere skin">
+  <img src="demo/vortex.gif" width="32%" alt="vortex skin"> -->
 </p>
 
 ## Features
 
 - **Real-time system audio capture** via PulseAudio
-- **Hybrid frequency bands**: linear spacing for bass (precise kick/bass separation), logarithmic for mids/treble
-- **Per-band dynamic scaling** — no more bass domination or clipping
-- **Modular skins**: easily switch between visual styles
+- **Modular skins**: easily switch between visual styles with `s` key
 - **Auto-fits terminal**: uses full width and height
 - **Ultra-low latency**: no delay buildup, even after hours
 - **Tunable via CLI**: adjust gain, frequency split, and headroom on the fly
-
-## Built-in Skins
-
-- `blocks` (default): Solid vertical bars using Unicode blocks (`█`)
-- `dots`: Minimalist dot matrix showing only peak levels
-- `gradient`: Color gradient bars (requires `colorama`)
+- **Over 20 visualizers**
 
 ## Requirements
 
@@ -36,7 +31,7 @@ A real-time terminal audio visualizer for Linux that renders system audio as dyn
 - `numpy`
 
 Optional:
-- `colorama` (for `gradient` skin)
+- `colorama` (for color skins)
 
 ## Installation
 
@@ -58,12 +53,11 @@ python3 bashblip.py
 ## Usage
 
 ```bash
-# Default: blocks skin
+# Default skin
 python3 bashblip.py
 
-# Use a different skin
-python3 bashblip.py --skin dots
-python3 bashblip.py --skin gradient
+# Use a specific skin
+python3 bashblip.py --skin quantumwave
 
 # Tune audio response
 python3 bashblip.py --gain 3500 --split-freq 250 --headroom 2.0
@@ -72,11 +66,15 @@ python3 bashblip.py --gain 3500 --split-freq 250 --headroom 2.0
 python3 bashblip.py --help
 ```
 
+### Controls
+- **`s`** - Cycle through all available skins
+- **`q`** - Quit the application
+
 ### Key CLI Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--skin` | Visualization style | `blocks` |
+| `--skin` | Starting visualization style | `blocks` |
 | `--gain` | Frequency balancing (higher = brighter highs) | `2500.0` |
 | `--split-freq` | Bass/mid crossover frequency (Hz) | `300.0` |
 | `--headroom` | Per-band clipping headroom (higher = less clipping) | `1.5` |

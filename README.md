@@ -5,13 +5,13 @@
 A real-time terminal audio visualizer for Linux CLI that renders system audio as dynamic ASCII with over 20 visualizations.
 
 <p align="center">
-  <img src="demo/demo_gradient.gif" width="32%" alt="tunnel skin">
-  <!-- <img src="demo/fire.gif" width="32%" alt="fire skin">
-  <img src="demo/quantumwave.gif" width="32%" alt="quantumwave skin">
+  <img src="demo/demo1.gif" width="32%" alt="tunnel skin">
+  <img src="demo/demo2.gif" width="32%" alt="fire skin">
+  <img src="demo/demo3.gif" width="32%" alt="quantumwave skin">
   <br>
-  <img src="demo/cymatic.gif" width="32%" alt="cymatic skin">
-  <img src="demo/resonancesphere.gif" width="32%" alt="resonancesphere skin">
-  <img src="demo/vortex.gif" width="32%" alt="vortex skin"> -->
+  <img src="demo/demo4.gif" width="32%" alt="cymatic skin">
+  <img src="demo/demo5.gif" width="32%" alt="resonancesphere skin">
+  <img src="demo/demo6.gif" width="32%" alt="vortex skin">
 </p>
 
 ## Features
